@@ -32,6 +32,7 @@ class ParticipantFactory extends Factory
             'full_name' => $this->faker->name(),
             'nick_name' => $this->faker->firstName(),
             'passport_picture' => 'passports/default.jpg',
+            'id_picture' => 'ids/default.jpg',
             'skill_categories' => $this->faker->randomElements($skills, rand(1, 3)),
             'performance' => $this->faker->paragraph(),
             'city' => $this->faker->city(),

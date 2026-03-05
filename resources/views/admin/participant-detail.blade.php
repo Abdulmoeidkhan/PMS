@@ -277,6 +277,97 @@
             background: #e5e7eb;
         }
 
+        /* Preview Modal Styles */
+        .preview-modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .preview-modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .preview-modal-content {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            max-width: 90%;
+            max-height: 90vh;
+            overflow: auto;
+            position: relative;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .preview-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .preview-modal-header h5 {
+            margin: 0;
+            color: #1f2937;
+        }
+
+        .preview-modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6b7280;
+            transition: color 0.2s ease;
+        }
+
+        .preview-modal-close:hover {
+            color: #1f2937;
+        }
+
+        .preview-modal-body {
+            padding: 20px;
+            text-align: center;
+        }
+
+        .preview-modal-body img {
+            max-width: 100%;
+            max-height: 70vh;
+            border-radius: 10px;
+            object-fit: contain;
+        }
+
+        .preview-modal-body iframe {
+            width: 100%;
+            height: 70vh;
+            border: none;
+            border-radius: 10px;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .info-row {
@@ -289,6 +380,19 @@
 
             .action-btn {
                 justify-content: center;
+            }
+
+            .preview-modal-content {
+                max-width: 95%;
+                max-height: 95vh;
+            }
+
+            .preview-modal-body img {
+                max-height: 60vh;
+            }
+
+            .preview-modal-body iframe {
+                height: 60vh;
             }
         }
     </style>
@@ -385,12 +489,39 @@
                         </div>
                     </div>
                     <div class="info-item">
+                        <span class="info-label">Emergency Contact (Encrypted)</span>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span class="info-value" id="emergencyValue">••••••••{{ substr($participant->emergency_contact, -4) }}</span>
+                            <button type="button" class="btn btn-sm btn-outline-primary" id="emergencyToggle" onclick="toggleEmergency()">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="info-item">
                         <span class="info-label">Date of Birth</span>
                         <span class="info-value">{{ \Carbon\Carbon::parse($participant->dob)->format('M d, Y') }}</span>
                     </div>
+                </div>
+
+                <div class="info-row">
                     <div class="info-item">
                         <span class="info-label">Nationality</span>
                         <span class="info-value">{{ $participant->nationality }}</span>
+                    </div>
+                </div>
+
+                <div class="section-title">Medical & Performance Information</div>
+                <div class="info-row">
+                    <div class="info-item" style="grid-column: 1 / -1;">
+                        <span class="info-label">Medical Information</span>
+                        <span class="info-value">{{ $participant->medical_info ?? 'N/A' }}</span>
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-item" style="grid-column: 1 / -1;">
+                        <span class="info-label">Performance</span>
+                        <span class="info-value">{{ $participant->performance ?? 'N/A' }}</span>
                     </div>
                 </div>
 
@@ -521,9 +652,36 @@
                                     <small>Image document</small>
                                 </div>
                             </div>
-                            <a href="{{ asset('storage/' . $participant->passport_picture) }}" class="file-download-btn" download>
-                                <i class="bi bi-download"></i> Download
-                            </a>
+                            <div style="display: flex; gap: 8px;">
+                                <button type="button" class="file-download-btn" style="background: #7c3aed;" onclick="previewImage('{{ route('admin.participant.preview', ['participantId' => $participant->id, 'fileType' => 'passport']) }}', 'Passport Photo')">
+                                    <i class="bi bi-eye"></i> Preview
+                                </button>
+                                <a href="{{ route('admin.participant.download', ['participantId' => $participant->id, 'fileType' => 'passport']) }}" class="file-download-btn">
+                                    <i class="bi bi-download"></i> Download
+                                </a>
+                            </div>
+                        </div>
+                    @endif
+
+                    @if($participant->id_picture)
+                        <div class="file-item">
+                            <div class="file-info">
+                                <div class="file-icon">
+                                    <i class="bi bi-file-image"></i>
+                                </div>
+                                <div class="file-details">
+                                    <h6>ID Picture</h6>
+                                    <small>Image document</small>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button type="button" class="file-download-btn" style="background: #7c3aed;" onclick="previewImage('{{ route('admin.participant.preview', ['participantId' => $participant->id, 'fileType' => 'id']) }}', 'ID Picture')">
+                                    <i class="bi bi-eye"></i> Preview
+                                </button>
+                                <a href="{{ route('admin.participant.download', ['participantId' => $participant->id, 'fileType' => 'id']) }}" class="file-download-btn">
+                                    <i class="bi bi-download"></i> Download
+                                </a>
+                            </div>
                         </div>
                     @endif
 
@@ -538,9 +696,14 @@
                                     <small>PDF document</small>
                                 </div>
                             </div>
-                            <a href="{{ asset('storage/' . $participant->hotel_reservation) }}" class="file-download-btn" download>
-                                <i class="bi bi-download"></i> Download
-                            </a>
+                            <div style="display: flex; gap: 8px;">
+                                <button type="button" class="file-download-btn" style="background: #7c3aed;" onclick="previewPDF('{{ route('admin.participant.preview', ['participantId' => $participant->id, 'fileType' => 'hotel']) }}', 'Hotel Reservation')">
+                                    <i class="bi bi-eye"></i> Preview
+                                </button>
+                                <a href="{{ route('admin.participant.download', ['participantId' => $participant->id, 'fileType' => 'hotel']) }}" class="file-download-btn">
+                                    <i class="bi bi-download"></i> Download
+                                </a>
+                            </div>
                         </div>
                     @endif
 
@@ -555,13 +718,18 @@
                                     <small>PDF document</small>
                                 </div>
                             </div>
-                            <a href="{{ asset('storage/' . $participant->flight_reservation) }}" class="file-download-btn" download>
-                                <i class="bi bi-download"></i> Download
-                            </a>
+                            <div style="display: flex; gap: 8px;">
+                                <button type="button" class="file-download-btn" style="background: #7c3aed;" onclick="previewPDF('{{ route('admin.participant.preview', ['participantId' => $participant->id, 'fileType' => 'flight']) }}', 'Flight Reservation')">
+                                    <i class="bi bi-eye"></i> Preview
+                                </button>
+                                <a href="{{ route('admin.participant.download', ['participantId' => $participant->id, 'fileType' => 'flight']) }}" class="file-download-btn">
+                                    <i class="bi bi-download"></i> Download
+                                </a>
+                            </div>
                         </div>
                     @endif
 
-                    @if(!$participant->passport_picture && !$participant->hotel_reservation && !$participant->flight_reservation)
+                    @if(!$participant->passport_picture && !$participant->id_picture && !$participant->hotel_reservation && !$participant->flight_reservation)
                         <div style="text-align: center; color: #9ca3af; padding: 20px;">
                             <i class="bi bi-inbox" style="font-size: 2rem; display: block; margin-bottom: 10px;"></i>
                             No documents uploaded
@@ -638,11 +806,43 @@
         </div>
     </div>
 
+    <!-- Image Preview Modal -->
+    <div id="imagePreviewModal" class="preview-modal">
+        <div class="preview-modal-content">
+            <div class="preview-modal-header">
+                <h5 id="previewTitle">Preview</h5>
+                <button type="button" class="preview-modal-close" onclick="closePreview()">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+            <div class="preview-modal-body">
+                <img id="previewImage" src="" alt="Preview" />
+            </div>
+        </div>
+    </div>
+
+    <!-- PDF Preview Modal -->
+    <div id="pdfPreviewModal" class="preview-modal">
+        <div class="preview-modal-content">
+            <div class="preview-modal-header">
+                <h5 id="pdfPreviewTitle">Preview</h5>
+                <button type="button" class="preview-modal-close" onclick="closePDFPreview()">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+            <div class="preview-modal-body">
+                <iframe id="pdfFrame" src=""></iframe>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         const mobileValue = '{{ $participant->mobile }}';
+        const emergencyValue = '{{ $participant->emergency_contact }}';
         const identityValue = '{{ $participant->identity }}';
         let mobileVisible = false;
+        let emergencyVisible = false;
         let identityVisible = false;
 
         function toggleMobile() {
@@ -654,6 +854,19 @@
                 btn.innerHTML = '<i class="bi bi-eye-slash"></i>';
             } else {
                 display.textContent = '••••••••' + mobileValue.slice(-4);
+                btn.innerHTML = '<i class="bi bi-eye"></i>';
+            }
+        }
+
+        function toggleEmergency() {
+            emergencyVisible = !emergencyVisible;
+            const display = document.getElementById('emergencyValue');
+            const btn = document.getElementById('emergencyToggle');
+            if (emergencyVisible) {
+                display.textContent = emergencyValue;
+                btn.innerHTML = '<i class="bi bi-eye-slash"></i>';
+            } else {
+                display.textContent = '••••••••' + emergencyValue.slice(-4);
                 btn.innerHTML = '<i class="bi bi-eye"></i>';
             }
         }
@@ -670,4 +883,51 @@
                 btn.innerHTML = '<i class="bi bi-eye"></i>';
             }
         }
+
+        // Preview Functions
+        function previewImage(imageSrc, title) {
+            document.getElementById('previewTitle').textContent = title;
+            document.getElementById('previewImage').src = imageSrc;
+            document.getElementById('imagePreviewModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closePreview() {
+            document.getElementById('imagePreviewModal').classList.remove('show');
+            document.body.style.overflow = 'auto';
+        }
+
+        function previewPDF(pdfSrc, title) {
+            document.getElementById('pdfPreviewTitle').textContent = title;
+            document.getElementById('pdfFrame').src = pdfSrc;
+            document.getElementById('pdfPreviewModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closePDFPreview() {
+            document.getElementById('pdfPreviewModal').classList.remove('show');
+            document.getElementById('pdfFrame').src = '';
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close modal when clicking outside the modal content
+        document.getElementById('imagePreviewModal').addEventListener('click', function(event) {
+            if (event.target === this) {
+                closePreview();
+            }
+        });
+
+        document.getElementById('pdfPreviewModal').addEventListener('click', function(event) {
+            if (event.target === this) {
+                closePDFPreview();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closePreview();
+                closePDFPreview();
+            }
+        });
     </script>

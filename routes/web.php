@@ -32,6 +32,8 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::post('/participants/{id}/approve', [AdminController::class, 'approveParticipant'])->name('participant.approve');
     Route::post('/participants/{id}/reject', [AdminController::class, 'rejectParticipant'])->name('participant.reject');
     Route::delete('/participants/{id}', [AdminController::class, 'deleteParticipant'])->name('participant.delete');
+    Route::get('/participants/{participantId}/preview/{fileType}', [AdminController::class, 'previewFile'])->name('participant.preview');
+    Route::get('/participants/{participantId}/download/{fileType}', [AdminController::class, 'downloadFile'])->name('participant.download');
     Route::get('/export', [AdminController::class, 'exportParticipants'])->name('export');
 
     // Categories management

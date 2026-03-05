@@ -153,32 +153,64 @@
                                 <img src="{{asset('assets/images/reference.webp')}}" alt="Passport Size" class="mb-2"
                                     style="border-radius:8px; width:150px;"
                                     title="Passport-size formal photograph with plain white background, neutral expression, direct eye contact, even lighting, and professional attire suitable for official records.">
+                                <small>Example of acceptable photo</small>
                             </div>
                         </div>
                         <div class="file-preview" id="photoPreview">Selected: <span id="photoName"></span></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label required"
+                            title="ID card or national identity card photograph with plain white background, neutral expression, direct eye contact, even lighting, and professional attire suitable for official records.">PICTURE
+                            (CNIC/PASSPORT)</label>
+                        <div class="row">
+                            <div class="col-md-9 mb-3"
+                                style="display: flex;justify-content: center;align-items: center;">
+                                <div class="file-upload-area" id="photoArea_id" style="flex-grow:4;">
+                                    <div class="file-upload-icon"><i class="bi bi-cloud-upload"></i></div>
+                                    <p
+                                        title="ID card or national identity card photograph with plain white background, neutral expression, direct eye contact, even lighting, and professional attire suitable for official records.">
+                                        Drag & drop or click to select</p>
+                                    <input type="file" id="id_picture" name="id_picture" accept="image/*"
+                                        style="display:none;" required>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <img src="{{asset('assets/images/cnic_front.webp')}}" alt="ID Card" class="mb-2"
+                                    style="border-radius:8px; width:150px;"
+                                    title="ID card or national identity card photograph with plain white background, neutral expression, direct eye contact, even lighting, and professional attire suitable for official records.">
+                                <small>Example of acceptable photo</small>
+                            </div>
+                        </div>
+                        <div class="file-preview" id="photoPreview_id">Selected: <span id="photoName_id"></span></div>
                     </div>
 
                     <div class="section-title required">SKILL CATEGORY</div>
                     <br />
                     <div class="checkbox-group mb-3" id="skillsContainer">
                         @php
-                        $skills = ['Right Hand Batsman','Left Hand Batsman','Right-Arm Fast','Left-Arm Fast','All
-                        Rounder','Right Arm Leg Spin','Left Arm Spinner','Off Spinner','Wicket Keeper'];
+                        $skills = [
+                        'Right Hand Batsman','Left Hand Batsman','Right-Arm Fast','Left-Arm Fast',
+                        'All Rounder','Right Arm Leg Spin','Left Arm Spinner','Off Spinner','Wicket Keeper'
+                        ];
                         @endphp
+
                         @foreach($skills as $i => $s)
                         <div class="checkbox-item">
-                            <input type="checkbox" id="skill_{{ $i }}" name="skill_categories[]" value="{{ $s }}"
-                                required>
+                            <input type="checkbox" id="skill_{{ $i }}" name="skill_categories[]" value="{{ $s }}">
                             <label for="skill_{{ $i }}">{{ $s }}</label>
                         </div>
                         @endforeach
                     </div>
 
+                    <span class="text-danger d-none" id="skillsError">Please select at least one skill.</span>
+
                     <div class="mb-3">
                         <label class="form-label required" for="performance"
                             title="Enter your cricket performance details including batting style (right/left-hand), bowling type (pace/spin), and primary role in the team (batsman, bowler, all-rounder, wicketkeeper).
 You may also mention previous tournament participation, notable achievements, match statistics, or any awards received.">PERFORMANCE</label>
-                        <textarea class="form-control" id="performance" name="performance" rows="3"
+                        <textarea class="form-control" id="performance" name="performance"
+                            style="field-sizing: content;"
                             title="Enter your cricket performance details including batting style (right/left-hand), bowling type (pace/spin), and primary role in the team (batsman, bowler, all-rounder, wicketkeeper).
 You may also mention previous tournament participation, notable achievements, match statistics, or any awards received."></textarea>
                     </div>
@@ -202,6 +234,18 @@ You may also mention previous tournament participation, notable achievements, ma
                         <div class="col-md-6 mb-3">
                             <label class="form-label required" for="email">EMAIL</label>
                             <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label required" for="emergency_contact">Emergency Contact</label>
+                            <input class="form-control" id="emergency_contact" name="emergency_contact" required
+                                placeholder="+1234567890">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label required" for="medical_info">Medical Information</label>
+                            <textarea class="form-control" id="medical_info" name="medical_info"
+                                style="field-sizing: content;" required></textarea>
                         </div>
                     </div>
 
@@ -355,6 +399,17 @@ You may also mention previous tournament participation, notable achievements, ma
             photoArea.addEventListener('drop', e=>{ e.preventDefault(); photoArea.classList.remove('dragover'); photoInput.files = e.dataTransfer.files; updatePhoto(); });
             photoInput.addEventListener('change', updatePhoto);
             function updatePhoto(){ if(photoInput.files.length){ photoPreview.classList.add('show'); photoName.textContent = photoInput.files[0].name } else { photoPreview.classList.remove('show') } }
+            
+            const photoAreaId = document.getElementById('photoArea_id');
+            const idInput = document.getElementById('id_picture');
+            const idPreview = document.getElementById('photoPreview_id');
+            const idName = document.getElementById('photoName_id');
+            photoAreaId.addEventListener('click', () => idInput.click());
+            photoAreaId.addEventListener('dragover', e=>{ e.preventDefault(); photoAreaId.classList.add('dragover'); });
+            photoAreaId.addEventListener('dragleave', ()=> photoAreaId.classList.remove('dragover'));
+            photoAreaId.addEventListener('drop', e=>{ e.preventDefault(); photoAreaId.classList.remove('dragover'); idInput.files = e.dataTransfer.files; updateId(); });
+            idInput.addEventListener('change', updateId);
+            function updateId(){ if(idInput.files.length){ idPreview.classList.add('show'); idName.textContent = idInput.files[0].name } else { idPreview.classList.remove('show') } }
 
             // Hotel reservation upload
             // const hotelArea = document.getElementById('hotelArea');
@@ -399,6 +454,22 @@ You may also mention previous tournament participation, notable achievements, ma
             // Form submit
             document.getElementById('registrationForm').addEventListener('submit', function(e){
                 e.preventDefault();
+                const checkboxes = document.querySelectorAll('input[name="skill_categories[]"]');
+                const error = document.getElementById("skillsError");
+                let checked = false;
+
+                checkboxes.forEach(cb => {
+                    if(cb.checked){
+                        checked = true;
+                    }
+                });
+
+                if(!checked){
+                    e.preventDefault();
+                    error.classList.remove("d-none");
+                } else {
+                    error.classList.add("d-none");
+                }
                 const selectedSkills = document.querySelectorAll('input[name="skill_categories[]"]:checked');
                 if(selectedSkills.length === 0){ showError('Please select at least one skill category'); return; }
                 const spinner = document.getElementById('spinner'); spinner.classList.add('show');
@@ -407,7 +478,7 @@ You may also mention previous tournament participation, notable achievements, ma
                 fetch('{{ route('form.submit') }}', { method:'POST', body:fd, headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 'Accept':'application/json' } })
                     .then(r=>r.json().catch(()=>({ success:false, message:'Invalid server response' }))).then(data=>{
                         spinner.classList.remove('show');
-                        if(data.success){ document.getElementById('registrationForm').style.display='none'; document.getElementById('successMessage').style.display='block'; setTimeout(()=>location.reload(),3000); } else { showError(data.message || 'Submission failed'); }
+                        if(data.success){ document.getElementById('registrationForm').style.display='none'; document.getElementById('successMessage').style.display='block'; setTimeout(()=>location.reload(),3000); } else { showError(data.errors || 'Submission failed'); }
                     }).catch(err=>{ spinner.classList.remove('show'); showError(err.message || 'Network error'); });
             });
 

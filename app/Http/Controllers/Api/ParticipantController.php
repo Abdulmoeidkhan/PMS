@@ -55,6 +55,7 @@ class ParticipantController extends Controller
                 'full_name' => 'required|string|max:255',
                 'nick_name' => 'required|string|max:255',
                 'passport_picture' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'id_picture' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
                 'skill_categories' => 'required|array|min:1',
                 'skill_categories.*' => 'string',
                 'performance' => 'nullable|string',
@@ -90,6 +91,15 @@ class ParticipantController extends Controller
                 $validated['passport_picture'] = $path;
             }
 
+            // Handle file upload
+            if ($request->hasFile('id_picture')) {
+                $file = $request->file('id_picture');
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $path = $file->storeAs('ids', $filename, 'public');
+                $validated['id_picture'] = $path;
+            }
+
+
             $participant = Participant::create($validated);
 
             return response()->json($participant, Response::HTTP_CREATED);
@@ -114,6 +124,7 @@ class ParticipantController extends Controller
                 'full_name' => 'nullable|string|max:255',
                 'nick_name' => 'nullable|string|max:255',
                 'passport_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'id_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
                 'skill_categories' => 'nullable|array',
                 'skill_categories.*' => 'string',
                 'performance' => 'nullable|string',
@@ -147,6 +158,14 @@ class ParticipantController extends Controller
                 $filename = time() . '_' . $file->getClientOriginalName();
                 $path = $file->storeAs('passports', $filename, 'public');
                 $validated['passport_picture'] = $path;
+            }
+
+            // Handle file upload
+            if ($request->hasFile('id_picture')) {
+                $file = $request->file('id_picture');
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $path = $file->storeAs('ids', $filename, 'public');
+                $validated['id_picture'] = $path;
             }
 
             // Remove null values

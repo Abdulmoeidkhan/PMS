@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('full_name');
             $table->string('nick_name');
             $table->string('passport_picture'); // file path
+            $table->string('id_picture'); // file path
             
             // Skills (stored as JSON)
             $table->json('skill_categories')->default('[]');
@@ -25,7 +26,9 @@ return new class extends Migration
             $table->text('performance')->nullable();
             $table->string('city');
             $table->text('address');
+            $table->text('medical_info')->nullable();
             $table->string('mobile')->encrypted(); // encrypted
+            $table->string('emergency_contact')->encrypted(); // encrypted
             $table->string('email')->unique();
             $table->date('dob');
             $table->string('nationality');

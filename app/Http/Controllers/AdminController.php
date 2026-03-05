@@ -7,6 +7,8 @@ use App\Models\User;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AdminController extends Controller
 {
@@ -277,6 +279,74 @@ class AdminController extends Controller
         $category = Category::findOrFail($id);
         $category->delete();
         return back()->with('success', 'Category deleted successfully');
+    }
+
+    /**
+     * Download participant file
+     */
+    public function downloadFile($participantId, $fileType)
+    {
+        $participant = Participant::findOrFail($participantId);
+        
+        $fileMap = [
+            'passport' => 'passport_picture',
+            'id' => 'id_picture',
+            'hotel' => 'hotel_reservation',
+            'flight' => 'flight_reservation',
+        ];
+
+        if (!isset($fileMap[$fileType])) {
+            abort(404, 'File type not found');
+        }
+
+        $field = $fileMap[$fileType];
+        $filePath = $participant->$field;
+
+        if (!$filePath || !Storage::disk('public')->exists($filePath)) {
+            abort(404, 'File not found');
+        }
+
+        // Generate meaningful filename
+        $fileNameMap = [
+            'passport_picture' => 'Passport_Photo_' . $participant->id . '_' . $participant->full_name,
+            'id_picture' => 'ID_Picture_' . $participant->id . '_' . $participant->full_name,
+            'hotel_reservation' => 'Hotel_Reservation_' . $participant->id . '_' . $participant->full_name,
+            'flight_reservation' => 'Flight_Reservation_' . $participant->id . '_' . $participant->full_name,
+        ];
+
+        $fileName = $fileNameMap[$field] ?? basename($filePath);
+        $originalFileName = basename($filePath);
+        $fileExtension = pathinfo($originalFileName, PATHINFO_EXTENSION);
+
+        return Storage::disk('public')->download($filePath, $fileName . '.' . $fileExtension);
+    }
+
+    /**
+     * Preview participant file
+     */
+    public function previewFile($participantId, $fileType)
+    {
+        $participant = Participant::findOrFail($participantId);
+        
+        $fileMap = [
+            'passport' => 'passport_picture',
+            'id' => 'id_picture',
+            'hotel' => 'hotel_reservation',
+            'flight' => 'flight_reservation',
+        ];
+
+        if (!isset($fileMap[$fileType])) {
+            abort(404, 'File type not found');
+        }
+
+        $field = $fileMap[$fileType];
+        $filePath = $participant->$field;
+
+        if (!$filePath || !Storage::disk('public')->exists($filePath)) {
+            abort(404, 'File not found');
+        }
+
+        return Storage::disk('public')->response($filePath);
     }
 
 }

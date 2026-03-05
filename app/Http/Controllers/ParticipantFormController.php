@@ -27,12 +27,15 @@ class ParticipantFormController extends Controller
                 'full_name' => 'required|string|max:255',
                 'nick_name' => 'required|string|max:255',
                 'passport_picture' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+                'id_picture' => 'required|image|mimes:jpeg,png,jpg|max:2048',
                 'skill_categories' => 'required|array|min:1',
                 'skill_categories.*' => 'required|string|in:Right Hand Batsman,Left Hand Batsman,Right-Arm Fast,Left-Arm Fast,All Rounder,Right Arm Leg Spin,Left Arm Spinner,Off Spinner,Wicket Keeper',
                 'performance' => 'nullable|string',
                 'city' => 'required|string|max:255',
                 'address' => 'required|string',
+                'medical_info' => 'nullable|string',
                 'mobile' => 'required|string|min:10|max:15',
+                'emergency_contact' => 'required|string|min:10|max:15',
                 'email' => 'required|email|unique:participants,email',
                 'dob' => 'required|date',
                 'nationality' => 'required|string|max:255|not_in:India,Israel',
@@ -44,8 +47,8 @@ class ParticipantFormController extends Controller
                 'arrival_date' => 'nullable|date',
                 'arrival_time' => 'nullable|date_format:H:i',
                 'hotel_name' => 'required_unless:nationality,Pakistan|string|max:255',
-                'hotel_reservation' => 'required_unless:nationality,Pakistan|file|mimes:pdf|max:5120',
-                'flight_reservation' => 'required_unless:nationality,Pakistan|file|mimes:pdf|max:5120',
+                // 'hotel_reservation' => 'required_unless:nationality,Pakistan|file|mimes:pdf|max:5120',
+                // 'flight_reservation' => 'required_unless:nationality,Pakistan|file|mimes:pdf|max:5120',
                 'checkin' => 'required_unless:nationality,Pakistan|date',
                 'checkout' => 'required_unless:nationality,Pakistan|date',
             ]);
@@ -64,6 +67,14 @@ class ParticipantFormController extends Controller
                 $filename = time() . '_passport_' . uniqid() . '.' . $file->getClientOriginalExtension();
                 $path = $file->storeAs('passports', $filename, 'public');
                 $validated['passport_picture'] = $path;
+            }
+
+            // Handle ID picture upload
+            if ($request->hasFile('id_picture')) {
+                $file = $request->file('id_picture');
+                $filename = time() . '_id_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                $path = $file->storeAs('ids', $filename, 'public');
+                $validated['id_picture'] = $path;
             }
 
             // Handle hotel reservation upload
